@@ -41,7 +41,7 @@ COPYRIGHT (C) 1986 Gary S. Brown.  You may use this program, or
  *
  * CRC32 code derived from work by Gary S. Brown.
  */
-
+#include "find_db.h"
 
 static uint32_t crc32_tab[] = {
 	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
@@ -140,10 +140,10 @@ int is_in_tree(FILE *fp, unsigned int url, unsigned int offset)
 	}
 }
 
-int find_url(char filename, char* string)
+int find_url(char* filename, char* string)
 {
 	FILE *fp = fopen(filename,"rb");
-	unsigned int hash = crc32(0,argv[1],strlen(argv[1]));
+	unsigned int hash = crc32(0,string,strlen(string));
 	printf("%u\n",hash);
 	if(is_in_tree(fp,hash,0))
 	{

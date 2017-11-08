@@ -8,7 +8,7 @@
 #include <linux/types.h>
 #include <linux/netfilter.h>		/* for NF_ACCEPT */
 #include <errno.h>
-
+#include "find_db.h"
 #include <libnetfilter_queue/libnetfilter_queue.h>
 
 /* returns packet id */
@@ -55,14 +55,9 @@ int filter(struct nfq_data *tb)
 	unsigned char* data;
 	int size;
 	int i;
+	int len;
 	size = nfq_get_payload(tb, &data);
 	ip_header = data;
-	//for(i=0 ; i<20; i++)
-	//{
-	//	printf("%d: %02x   ",i, ((unsigned char*)ip_header)[i]);
-	//}
-	//printf("\n");
-	//printf("%x\n",(unsigned char)ip_header + 9);
 	if((unsigned char)(ip_header->ip_p) != 6) //is not tcp
 	{
 		return 0;
@@ -79,11 +74,15 @@ int filter(struct nfq_data *tb)
 	{
 		return 0;
 	}
-	if(strstr(data, host))
+	if(strstr(data, "Host: "))
 	{
-		printf("%s",data);
-		printf("detected\n");
-		return 1;
+		len = strstr(data,"\r\n") - strstr(data,"Host: ");
+		memset(host,0,100 );
+		memcpy(host, data + 6, len - 6);
+		if (is_in_tree("result",host))
+		{
+			return 1;
+		}
 	}
 	return 0;
 }
@@ -136,7 +135,6 @@ int main(int argc, char **argv)
 	int rv;
 	char buf[4096] __attribute__ ((aligned));
 
-	strcpy(host, argv[1]);
 
 	printf("opening library handle\n");
 	h = nfq_open();
